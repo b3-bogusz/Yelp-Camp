@@ -45,7 +45,7 @@ app.use(express.urlencoded({extended: true}));
 app.use(methodOverride('_method'));
 
 
-// JOI validator function for new/edit //
+// JOI middleware function for new/edit //
 const validateCampground = (req, res, next) => {
     // call method .validate on req.body //
     const { error } = campgroundSchema.validate(req.body);
@@ -60,7 +60,7 @@ const validateCampground = (req, res, next) => {
     }
 }
 
-// JOI validator function for review //
+// JOI middleware  function for review //
 const validateReview = (req, res, next) => {
     const { error } = reviewSchema.validate(req.body);
     if (error){
@@ -98,7 +98,7 @@ app.post('/campgrounds', validateCampground, catchAsync(async (req, res, next) =
 
 // show route //
 app.get('/campgrounds/:id', catchAsync(async (req, res) => {
-    const campground = await Campground.findById(req.params.id)
+    const campground = await Campground.findById(req.params.id).populate('reviews');
     res.render('campgrounds/show', { campground });
 }))
 
@@ -124,12 +124,25 @@ app.delete('/campgrounds/:id', catchAsync(async (req, res) => {
 
 // review route //
 app.post('/campgrounds/:id/reviews', validateReview, catchAsync(async (req, res) => {
+    // finding corresponding campground //
     const campground = await Campground.findById(req.params.id);
+    // new review model //
     const review = new Review(req.body.review);
+    // pushing newly created review into array in campground model "
     campground.reviews.push(review);
     await review.save();
     await campground.save();
     res.redirect(`/campgrounds/${campground._id}`);
+}))
+
+// delete review route //
+app.delete('/campgrounds/:id/reviews/:reviewId', catchAsync( async (req, res) => {
+    const { id, reviewId } = req.params;
+    // finding campground and removing a reference reviewId from reviews array //
+    await Campground.findByIdAndUpdate(id, { $pull: {reviews: reviewId}})
+    // deleting entire review //
+    await Review.findByIdAndDelete(reviewId);
+   res.redirect(`/campgrounds/${id}`);
 }))
 
 // for every path-  Error Class //
