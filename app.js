@@ -12,10 +12,16 @@ const methodOverride = require('method-override');
 // session //
 const session = require('express-session');
 const flash = require('connect-flash');
-// routers //
-const campgrounds = require('./routes/campgrounds');
-const reviews = require('./routes/reviews');
 
+const passport = require('passport');
+const LocalStrategy = require('passport-local');
+const User = require('./models/user');
+
+
+// routers //
+const usersRoutes = require('./routes/users');
+const campgroundRoutes = require('./routes/campgrounds');
+const reviewRoutes = require('./routes/reviews');
 
 // connecting mongoose //
 // mongo db location locally and which database to use //
@@ -59,6 +65,16 @@ const sessionConfig = {
 app.use(session(sessionConfig))
 app.use(flash())
 
+app.use(passport.initialize());
+app.use(passport.session());
+// static method from passport-local-mongoose//
+// generates a function that is used in LocalStrategy//
+passport.use(new LocalStrategy(User.authenticate()));
+// generates a function that is used by Passport to store users into session //
+passport.serializeUser(User.serializeUser());
+// generates a function that is used by Passport to unstore users from session //
+passport.deserializeUser(User.deserializeUser());
+
 // flash middleware //
 app.use((req, res, next) => {
     // req.flash will be available in template through locals under key 'success' //
@@ -68,9 +84,12 @@ app.use((req, res, next) => {
     next();
 })
 
+
+
 // router prefix //
-app.use('/campgrounds', campgrounds)
-app.use('/campgrounds/:id/reviews', reviews)
+app.use('/', usersRoutes)
+app.use('/campgrounds', campgroundRoutes)
+app.use('/campgrounds/:id/reviews', reviewRoutes)
 
 // home page //
 app.get('/', (req, res) => {
