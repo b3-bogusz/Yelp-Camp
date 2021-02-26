@@ -77,6 +77,7 @@ passport.deserializeUser(User.deserializeUser());
 
 // flash middleware //
 app.use((req, res, next) => {
+    res.locals.currentUser = req.user;
     // req.flash will be available in template through locals under key 'success' //
     // on every single request//
     res.locals.success = req.flash('success');

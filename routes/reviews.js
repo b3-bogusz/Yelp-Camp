@@ -1,5 +1,7 @@
 const express = require('express');
 const router = express.Router({mergeParams: true});
+const { validateReview } = require('../middleware');
+
 
 // async Error wrapper function //
 const catchAsync = require('../utilities/catchAsync');
@@ -10,21 +12,9 @@ const ExpressError = require('../utilities/ExpressError')
 const Campground = require('../models/campground');
 // Review model //
 const Review = require('../models/review');
-// JOI validation schema //
-const { reviewSchema } = require('../schemas.js');
 
-// JOI middleware  function for review //
-const validateReview = (req, res, next) => {
-    const { error } = reviewSchema.validate(req.body);
-    if (error){
-        // taking error message from error.details which is array of objects//
-        // if we have more errors we map over them and join them //
-        const msg = error.details.map(el => el.message).join(',')
-        throw new ExpressError(msg, 400)
-    } else {
-        next();
-    }
-}
+
+
 
 
 // review route //
