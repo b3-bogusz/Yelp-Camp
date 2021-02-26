@@ -4,19 +4,25 @@ const campgrounds = require('../controllers/campgrounds');
 
 // async Error wrapper function //
 const catchAsync = require('../utilities/catchAsync');
-
+// storage //
+const { storage } = require('../cloudinary');
+// middleware for uploading multipart/form data //
+const multer = require('multer');
+const upload = multer({ storage });
 // middleware //
 const { isLoggedIn, isAuthor, validateCampground, isReviewAuthor } = require('../middleware');
 // Campground model //
 const Campground = require('../models/campground');
-// JOI validation schema //
+
 
 router.route('/')
 // index  //
     .get(catchAsync(campgrounds.index))
 // new campground route/ creating new //
-    .post(isLoggedIn, validateCampground, catchAsync(campgrounds.createCampground));
-
+//     .post(isLoggedIn, validateCampground, catchAsync(campgrounds.createCampground));
+    .post(upload.array('image'), (req, res) => {
+        console.log(req.body, req.files);
+    })
 // new form  //
 router.get('/new',  isLoggedIn, campgrounds.renderNewForm);
 
