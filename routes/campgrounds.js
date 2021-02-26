@@ -5,7 +5,7 @@ const router = express.Router();
 const catchAsync = require('../utilities/catchAsync');
 
 // middleware //
-const { isLoggedIn, isAuthor, validateCampground } = require('../middleware');
+const { isLoggedIn, isAuthor, validateCampground, isReviewAuthor } = require('../middleware');
 // Campground model //
 const Campground = require('../models/campground');
 // JOI validation schema //
@@ -36,7 +36,12 @@ router.post('/', isLoggedIn, validateCampground, catchAsync(async (req, res, nex
 
 // show route //
 router.get('/:id', catchAsync(async (req, res) => {
-    const campground = await Campground.findById(req.params.id).populate('reviews').populate('author');
+    const campground = await Campground.findById(req.params.id).populate({
+        path: 'reviews',
+        populate: {
+            path: 'author'
+        }
+    }).populate('author');
     if (!campground) {
         req.flash('error', 'Cannot find that campground');
         return res.redirect('/campgrounds');
@@ -64,7 +69,7 @@ router.put('/:id', isLoggedIn, isAuthor, validateCampground, catchAsync(async (r
 }))
 
 // delete route //
-router.delete('/:id', isLoggedIn, isAuthor, catchAsync(async (req, res) => {
+router.delete('/:id', isLoggedIn, isReviewAuthor, isAuthor, catchAsync(async (req, res) => {
     const { id } = req.params;
     await Campground.findByIdAndDelete(id);
     req.flash('success', 'Successfully deleted campground');
