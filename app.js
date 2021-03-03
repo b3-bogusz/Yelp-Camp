@@ -24,6 +24,8 @@ const passport = require('passport');
 const LocalStrategy = require('passport-local');
 const User = require('./models/user');
 
+const mongoSanitize = require('express-mongo-sanitize');
+
 
 // routers //
 const usersRoutes = require('./routes/users');
@@ -58,6 +60,7 @@ app.use(express.urlencoded({extended: true}));
 // faking put/delete requests //
 app.use(methodOverride('_method'));
 app.use(express.static(path.join(__dirname, 'public')))
+app.use(mongoSanitize())
 
 const sessionConfig = {
     secret: 'thisshouldbeabettersecret!',
